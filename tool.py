@@ -97,9 +97,15 @@ class ProgressBar:
         self.num=num
         self.curent=0
         pass
-    def step(self,out=0):
+    def step(self,go=1):
         sys.stdout.write('\r')
-        self.curent+=1
+        self.curent+=go
         sys.stdout.write(f'{self.curent/self.num*100:.2f}%')
     def reset(self):
         self.curent=0
+    def end(self):
+        sys.stdout.write('\r')
+
+
+
+        
