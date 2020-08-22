@@ -29,6 +29,7 @@ class learning_curve():
         self.select=[True for  i in range(self.records_num)]
         self.xlabel=xlabel
         self.ylabel=ylabel
+
     def __fix_conponents__(self,axe,legend=True,xlabel=None,ylabel=None,title=None):
         if legend==True:
             axe.legend()
@@ -72,6 +73,15 @@ class learning_curve():
                 self.__fix_conponents__(ax)
         fig.tight_layout()
         return fig
+    def save(self,name,select=None):
+        if select is None:
+            select=self.select
+        res=[]
+        for i in range(self.records_num):
+            if select[i] is True:
+                res.append(self.records[i])
+        res=np.array(res)
+        np.save(name,res)
     
     def draw_range(self,a=0,b=-1,block_num=1,select=None,expand=0,each=False):
         if b==-1:
@@ -92,6 +102,12 @@ class learning_curve():
                 fig.append(self.draw_each(a2,b2,select))
             plt.show()
         return fig
+        
+    @staticmethod
+    def load(name,labels=None,xlabel='',ylabel=''):
+        res=np.load(name)
+        return learning_curve(res,labels,xlabel,ylabel)
+
 class ProgressBar:
     def __init__(self,num=100):
         self.num=num
