@@ -2,6 +2,7 @@ from matplotlib.pyplot import axes, ylabel
 import torch
 import random
 from torch import select
+from torch.serialization import validate_cuda_device
 import torchvision
 import pandas as pd
 import numpy as np 
@@ -109,19 +110,58 @@ class learning_curve():
         return learning_curve(res,labels,xlabel,ylabel)
 
 class ProgressBar:
-    def __init__(self,num=100):
+    def __init__(self,num=100,info='ing...'):
         self.num=num
         self.curent=0
+        self.info=info
         pass
     def step(self,go=1):
         sys.stdout.write('\r')
         self.curent+=go
-        sys.stdout.write(f'{self.curent/self.num*100:.2f}%')
+        sys.stdout.write(f'{self.info} {self.curent/self.num*100:.2f}%')
+        if self.curent>=self.num:
+            sys.stdout.write('\r')
     def reset(self):
         self.curent=0
-    def end(self):
-        sys.stdout.write('\r')
 
-
-
-        
+class TrainTool():
+    @staticmethod
+    def train_once(model,train_data,lr=0.1,batch_size=10,epoch=10,optim=None):
+        model.train()
+        loader=data.DataLoader(train_data,batch_size=batch_size)
+        if optim is None:
+            optim=torch.optim.Adam(model.parameters(),lr=lr)
+        model.reset_loss_record()
+        pb=ProgressBar(epoch*len(train_data),'training...')
+        for i in range(epoch):
+            for x,y in loader:
+                optim.zero_grad()
+                res=model(x)
+                loss=model.computeloss(x,y,res)
+                loss.backward()
+                optim.step()
+                pb.step(len(x))
+        return model.get_loss()
+    @staticmethod
+    def valid(model,valid_data):
+        loader=data.DataLoader(valid_data,batch_size=1)
+        model.reset_loss_record()
+        pb=ProgressBar(len(valid_data),'validing...')
+        with torch.no_grad():
+            for x,y in loader:
+                res=model(x)
+                loss=model.computeloss(x,y,res)
+                pb.step(len(x))
+        return model.get_loss()
+    @staticmethod
+    def train_epoch(model,train_data,valid_data,lr=0.1,batch_size=10,epoch=10,epoch_per=10,optim=None):
+        if optim is None:
+            optim=torch.optim.Adam(model.parameters(),lr=lr)
+        loss_record=[]
+        valid_record=[]
+        for i in range(epoch):
+            loss_record.append(TrainTool.train_once(model,train_data,lr=lr,batch_size=batch_size,epoch=epoch_per,optim=optim))
+            valid_record.append(TrainTool.valid(model,valid_data))
+            print(f'{i}\t{loss_record[-1]}\t{valid_record[-1]}')
+        return loss_record,valid_record
+        pass
