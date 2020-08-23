@@ -1,7 +1,7 @@
 from matplotlib.pyplot import axes, ylabel
 import torch
 import random
-from torch import select
+from torch import reshape, select
 import torch.nn as nn
 from torch.serialization import validate_cuda_device
 import torchvision
@@ -21,7 +21,9 @@ def data_split(dataset,propertion=0.8,shuffle=True,rand=10):
     return dataset[:a],dataset[a:]
     
 class learning_curve():
-    def __init__(self,records,labels=None,xlabel='',ylabel=''):
+    def __init__(self,records,labels=None,xlabel='',ylabel='',reshape=False):
+        if reshape ==True:
+            records=np.array(records).T
         self.records=records
         self.max_len=len(records[0])
         self.records_num=len(records)
@@ -52,7 +54,7 @@ class learning_curve():
             select=[True for i in range(self.records_num)]
         fig,axe=plt.subplots()
         for i in range(self.records_num):
-            if select[i] is True:
+            if select[i] == True:
                 axe.plot(range(a,b),self.records[i][a:b],label=self.labels[i])
         self.__fix_conponents__(axe)
         return fig
@@ -65,7 +67,7 @@ class learning_curve():
         fig=plt.figure()
         k=1
         for i in range(self.records_num):
-            if select[i] is True:
+            if select[i] == True:
                 # plt.subplot(self.records_num,1,i+1)
                 # plt.plot(range(a,b),self.records[i][a:b])
                 # print(i)
@@ -80,7 +82,7 @@ class learning_curve():
             select=self.select
         res=[]
         for i in range(self.records_num):
-            if select[i] is True:
+            if select[i] == True:
                 res.append(self.records[i])
         res=np.array(res)
         np.save(name,res)
@@ -161,9 +163,10 @@ class TrainTool():
         if optim is None:
             optim=torch.optim.Adam(model.parameters(),lr=lr)
         loss_record=[]
-        valid_record=[]
         for i in range(epoch):
-            loss_record.append(TrainTool.train_once(model,train_data,lr=lr,batch_size=batch_size,epoch=epoch_per,optim=optim))
-            valid_record.append(TrainTool.valid(model,valid_data,batch_size=batch_size))
-            print(f'{i}\t{loss_record[-1]}\t{valid_record[-1]}')
-        return loss_record,valid_record
+            current=[]
+            current+=TrainTool.train_once(model,train_data,lr=lr,batch_size=batch_size,epoch=epoch_per,optim=optim)
+            current+=(TrainTool.valid(model,valid_data,batch_size=batch_size))
+            print(f'{i}\t{current}')
+            loss_record.append((current))
+        return loss_record
