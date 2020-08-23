@@ -161,7 +161,7 @@ class TrainTool():
         valid_record=[]
         for i in range(epoch):
             loss_record.append(TrainTool.train_once(model,train_data,lr=lr,batch_size=batch_size,epoch=epoch_per,optim=optim))
-            valid_record.append(TrainTool.valid(model,valid_data),batch_size=batch_size)
+            valid_record.append(TrainTool.valid(model,valid_data,batch_size=batch_size))
             print(f'{i}\t{loss_record[-1]}\t{valid_record[-1]}')
         return loss_record,valid_record
         pass  
