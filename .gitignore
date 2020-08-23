@@ -2,3 +2,4 @@ mnist/
 data/
 __pycache__/
 .vscode/
+.DS_store

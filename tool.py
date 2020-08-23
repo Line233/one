@@ -2,6 +2,7 @@ from matplotlib.pyplot import axes, ylabel
 import torch
 import random
 from torch import select
+import torch.nn as nn
 from torch.serialization import validate_cuda_device
 import torchvision
 import pandas as pd
@@ -125,6 +126,7 @@ class ProgressBar:
         self.curent=0
 
 class TrainTool():
+    
     @staticmethod
     def train_once(model,train_data,lr=0.1,batch_size=10,epoch=10,optim=None):
         model.train()
@@ -153,6 +155,7 @@ class TrainTool():
                 loss=model.computeloss(x,y,res)
                 pb.step(len(x))
         return model.get_loss()
+        
     @staticmethod
     def train_epoch(model,train_data,valid_data,lr=0.1,batch_size=10,epoch=10,epoch_per=10,optim=None):
         if optim is None:
@@ -164,4 +167,3 @@ class TrainTool():
             valid_record.append(TrainTool.valid(model,valid_data,batch_size=batch_size))
             print(f'{i}\t{loss_record[-1]}\t{valid_record[-1]}')
         return loss_record,valid_record
-        pass  
