@@ -170,3 +170,7 @@ class TrainTool():
             print(f'{i}\t{current}')
             loss_record.append((current))
         return loss_record
+
+def download(name):
+    from google.colab import files
+    files.download(name)
