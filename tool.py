@@ -1,7 +1,8 @@
 from matplotlib.pyplot import axes, ylabel
+from numpy.core.records import record
 import torch
 import random
-from torch import reshape, select
+from torch import mode, reshape, select
 import torch.nn as nn
 from torch.serialization import validate_cuda_device
 import torchvision
@@ -170,7 +171,67 @@ class TrainTool():
             print(f'{i}\t{current}')
             loss_record.append((current))
         return loss_record
+    @staticmethod
+    def dlr(index):return 0.1
+
+    @staticmethod
+    def is_early_end(records):
+        return False
+
+    @staticmethod
+    def train_adam_reset(model,train_data,valid_data,dlr=dlr,batch_size=10,epoch=10,epoch_per=10,optim=None,early_end=is_early_end):
+        loss_record=[]
+        reset_record=[]
+        last=0
+        reset_time=0
+        if optim is None:
+            optim=torch.optim.Adam(model.parameters(),lr=dlr(reset_time))
+
+        for i in range(epoch):
+            current=[]
+            current+=TrainTool.train_once(model,train_data,lr=0,batch_size=batch_size,epoch=epoch_per,optim=optim)
+            current+=(TrainTool.valid(model,valid_data,batch_size=batch_size))
+            print(f'{i}\t{current}')
+            loss_record.append((current))
+
+            if early_end(loss_record,last):
+                print('reset_adam')
+                reset_time+=1
+                optim=torch.optim.Adam(model.parameters(),lr=dlr(reset_time))
+                last=i
+                reset_record.append(last)
+        return loss_record,reset_record
+
+    @staticmethod
+    def train_expand(model,train_data,valid_data,dlr=dlr,batch_size=10,epoch=10,epoch_per=10,optim=None,early_end=is_early_end):
+        loss_record=[]
+        reset_record=[]
+        last=0
+        reset_time=0
+        if optim is None:
+            optim=torch.optim.Adam(model.parameters(),lr=dlr(reset_time))
+
+        for i in range(epoch):
+            current=[]
+            current+=TrainTool.train_once(model,train_data,lr=0,batch_size=batch_size,epoch=epoch_per,optim=optim)
+            current+=(TrainTool.valid(model,valid_data,batch_size=batch_size))
+            print(f'{i}\t{current}')
+            loss_record.append((current))
+
+            if early_end(loss_record,last):
+                print(model)
+                model.expand()
+                reset_time+=1
+                optim=torch.optim.Adam(model.parameters(),lr=dlr(reset_time))
+                last=i
+                reset_record.append(last)
+
+        return loss_record,reset_record
 
 def download(name):
     from google.colab import files
     files.download(name)
+def downloads(names):
+    from google.colab import files
+    for n in names:
+        files.download(n)
