@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.utils.data as data
 import torchvision
-from matplotlib.pyplot import axes, ylabel
+from matplotlib.pyplot import axes, title, ylabel
 from torch import mode, reshape, select, t
 from torch.serialization import validate_cuda_device
 
@@ -24,7 +24,7 @@ def data_split(dataset, propertion=0.8, shuffle=True, rand=10):
 
 
 class learning_curve():
-    def __init__(self, records, labels=None, xlabel='', ylabel='', reshape=False):
+    def __init__(self, records, labels=None, xlabel='', ylabel='', title='', reshape=False):
         if reshape == True:
             records = np.array(records).T
         self.records = records
@@ -36,8 +36,9 @@ class learning_curve():
         self.select = [True for i in range(self.records_num)]
         self.xlabel = xlabel
         self.ylabel = ylabel
-        self.vlines=[]
-        self.hlines=[]
+        self.vlines = []
+        self.hlines = []
+        self.title = title
 
     def __fix_conponents__(self, axe, legend=True, xlabel=None, ylabel=None, title=None):
         if legend == True:
@@ -48,29 +49,35 @@ class learning_curve():
             ylabel = self.ylabel
         axe.set_xlabel(xlabel)
         axe.set_ylabel(ylabel)
-        if title is not None:
-            axe.set_title(title)
-    def add_vlines(self,lines):
-        self.vlines+=lines
+        if title is None:
+            title = self.title
+        axe.set_title(title)
+
+    def add_vlines(self, lines):
+        self.vlines += lines
         self.vlines.sort()
+
     def reset_vlines(self):
-        self.vlines=[]
-    def add_hlines(self,lines):
-        self.hlines+=lines
+        self.vlines = []
+
+    def add_hlines(self, lines):
+        self.hlines += lines
         self.hlines.sort()
+
     def reset_vlines(self):
-        self.hlines=[]
-    
-    def __draw_lines__(self,axe,a,b):
+        self.hlines = []
+
+    def __draw_lines__(self, axe, a, b):
         for line in self.vlines:
-            if line<=a:
+            if line <= a:
                 continue
-            elif line>=b:
+            elif line >= b:
                 break
             else:
                 axe.axvline(line)
         for line in self.hlines:
             axe.axhline(line)
+
     def draw(self, a=0, b=-1, select=None):
         if b == -1:
             b = len(self.records[0])
@@ -82,7 +89,7 @@ class learning_curve():
                 axe.plot(
                     range(a, b), self.records[i][a:b], label=self.labels[i])
         self.__fix_conponents__(axe)
-        self.__draw_lines__(axe,a,b)
+        self.__draw_lines__(axe, a, b)
         return fig
 
     def draw_each(self, a=0, b=-1, select=None):
@@ -102,7 +109,7 @@ class learning_curve():
                 ax.plot(range(a, b), self.records[i]
                         [a:b], label=self.labels[i])
                 self.__fix_conponents__(ax)
-                self.__draw_lines__(ax,a,b)
+                self.__draw_lines__(ax, a, b)
         fig.tight_layout()
         return fig
 
@@ -113,7 +120,7 @@ class learning_curve():
         for i in range(self.records_num):
             if select[i] == True:
                 res.append(self.records[i])
-        res2=[]
+        res2 = []
         res2.append(res)
         res2.append(self.hlines)
         res2.append(self.vlines)
@@ -141,16 +148,18 @@ class learning_curve():
         return fig
 
     @staticmethod
-    def load(name, labels=None, xlabel='', ylabel=''):
+    def load(name, labels=None, xlabel='', ylabel='', title=''):
         res = np.load(name)
-        return learning_curve(res, labels, xlabel, ylabel)
+        return learning_curve(res, labels, xlabel, ylabel, title)
+
     @staticmethod
-    def load2(name, labels=None, xlabel='', ylabel=''):
-        res = np.load(name,allow_pickle=True)
-        lc= learning_curve(res[0], labels, xlabel, ylabel)
+    def load2(name, labels=None, xlabel='', ylabel='', title=''):
+        res = np.load(name, allow_pickle=True)
+        lc = learning_curve(res[0], labels, xlabel, ylabel, title)
         lc.add_hlines(list(res[1]))
         lc.add_vlines(list(res[2]))
         return lc
+
 
 class ProgressBar:
     def __init__(self, num=100, info='ing...'):
@@ -213,7 +222,7 @@ class TrainTool():
                                             batch_size=batch_size, epoch=epoch_per, optim=optim)
             current += (TrainTool.valid(model, valid_data,
                                         batch_size=batch_size))
-            print(f'{i}',end='\t')
+            print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
         return loss_record
@@ -240,7 +249,7 @@ class TrainTool():
                                             batch_size=batch_size, epoch=epoch_per, optim=optim)
             current += (TrainTool.valid(model, valid_data,
                                         batch_size=batch_size))
-            print(f'{i}',end='\t')
+            print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
 
@@ -268,7 +277,7 @@ class TrainTool():
                                             batch_size=batch_size, epoch=epoch_per, optim=optim)
             current += (TrainTool.valid(model, valid_data,
                                         batch_size=batch_size))
-            print(f'{i}',end='\t')
+            print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
 
@@ -283,10 +292,12 @@ class TrainTool():
 
         return loss_record, reset_record
 
+
 def print_list(lst):
     for i in lst:
-        print(f"{i:.8f}",end='\t')
+        print(f"{i:.8f}", end='\t')
     print('\n')
+
 
 def download(name):
     from google.colab import files
@@ -297,4 +308,3 @@ def downloads(names):
     from google.colab import files
     for n in names:
         files.download(n)
-
