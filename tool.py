@@ -296,3 +296,4 @@ def downloads(names):
     from google.colab import files
     for n in names:
         files.download(n)
+
