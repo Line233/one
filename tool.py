@@ -286,6 +286,7 @@ class TrainTool():
 def print_list(lst):
     for i in lst:
         print(f"{i:.8f}",end='\t')
+    print('\n')
 
 def download(name):
     from google.colab import files
