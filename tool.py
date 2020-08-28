@@ -1,7 +1,8 @@
-from os import linesep
+from ast import NameConstant
+from os import name
 import random
 import sys
-
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,6 +13,8 @@ import torchvision
 from matplotlib.pyplot import axes, title, ylabel
 from torch import mode, reshape, select, t
 from torch.serialization import validate_cuda_device
+import shutil
+import datetime
 
 
 def data_split(dataset, propertion=0.8, shuffle=True, rand=10):
@@ -212,7 +215,7 @@ class TrainTool():
         return model.get_loss()
 
     @staticmethod
-    def train_epoch(model, train_data, valid_data,records=None, lr=0.1, batch_size=10, epoch=10, epoch_per=10, optim=None):
+    def train_epoch(model, train_data, valid_data, records=None, lr=0.1, batch_size=10, epoch=10, epoch_per=10, optim=None):
         if optim is None:
             optim = torch.optim.Adam(model.parameters(), lr=lr)
         loss_record = []
@@ -225,7 +228,8 @@ class TrainTool():
             print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
-            if records is not None:records.append(current)
+            if records is not None:
+                records.append(current)
         return loss_record
 
     @staticmethod
@@ -236,7 +240,7 @@ class TrainTool():
         return False
 
     @staticmethod
-    def train_adam_reset(model, train_data, valid_data,records=None,ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
+    def train_adam_reset(model, train_data, valid_data, records=None, ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
         loss_record = []
         reset_record = []
         last = 0
@@ -253,7 +257,8 @@ class TrainTool():
             print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
-            if records is not None: records.append(current)
+            if records is not None:
+                records.append(current)
 
             if early_end(loss_record, last):
                 print('reset_adam')
@@ -262,11 +267,12 @@ class TrainTool():
                     model.parameters(), lr=dlr(reset_time))
                 last = i
                 reset_record.append(last)
-                if ex_records is not None: ex_records.append(last)
+                if ex_records is not None:
+                    ex_records.append(last)
         return loss_record, reset_record
 
     @staticmethod
-    def train_expand(model, train_data, valid_data,records=None,ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
+    def train_expand(model, train_data, valid_data, records=None, ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
         loss_record = []
         reset_record = []
         last = 0
@@ -283,7 +289,8 @@ class TrainTool():
             print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
-            if records is not None: records.append(current)
+            if records is not None:
+                records.append(current)
 
             if early_end(loss_record, last):
                 model.expand()
@@ -293,7 +300,8 @@ class TrainTool():
                     model.parameters(), lr=dlr(reset_time))
                 last = i
                 reset_record.append(last)
-                if ex_records is not None: ex_records.append(last)
+                if ex_records is not None:
+                    ex_records.append(last)
         return loss_record, reset_record
 
 
@@ -302,13 +310,26 @@ def print_list(lst):
         print(f"{i:.8f}", end='\t')
     print('\n')
 
+def now_str():
+    return datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
 
-def download(name):
-    from google.colab import files
-    files.download(name)
+class colab_tool():
 
+    @staticmethod
+    def downloads(names):
+        from google.colab import files
+        for n in names:
+            files.download(n)
 
-def downloads(names):
-    from google.colab import files
-    for n in names:
-        files.download(n)
+    @staticmethod
+    def download_drive(names):
+        drive_path = 'drive/My Drive/'
+        for n in names:
+            tmp=drive_path+now_str()+'_'+n
+            shutil.copy(n,tmp)
+
+    @staticmethod
+    def zip(zip_name,content):
+        import shutil
+        # Create 'path\to\zip_file.zip'
+        shutil.make_archive(zip_name, 'zip', content)
