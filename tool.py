@@ -212,7 +212,7 @@ class TrainTool():
         return model.get_loss()
 
     @staticmethod
-    def train_epoch(model, train_data, valid_data, lr=0.1, batch_size=10, epoch=10, epoch_per=10, optim=None):
+    def train_epoch(model, train_data, valid_data,records=None, lr=0.1, batch_size=10, epoch=10, epoch_per=10, optim=None):
         if optim is None:
             optim = torch.optim.Adam(model.parameters(), lr=lr)
         loss_record = []
@@ -225,6 +225,7 @@ class TrainTool():
             print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
+            if records is not None:records.append(current)
         return loss_record
 
     @staticmethod
@@ -235,7 +236,7 @@ class TrainTool():
         return False
 
     @staticmethod
-    def train_adam_reset(model, train_data, valid_data, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
+    def train_adam_reset(model, train_data, valid_data,records=None,ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
         loss_record = []
         reset_record = []
         last = 0
@@ -252,6 +253,7 @@ class TrainTool():
             print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
+            if records is not None: records.append(current)
 
             if early_end(loss_record, last):
                 print('reset_adam')
@@ -260,10 +262,11 @@ class TrainTool():
                     model.parameters(), lr=dlr(reset_time))
                 last = i
                 reset_record.append(last)
+                if ex_records is not None: ex_records.append(last)
         return loss_record, reset_record
 
     @staticmethod
-    def train_expand(model, train_data, valid_data, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
+    def train_expand(model, train_data, valid_data,records=None,ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
         loss_record = []
         reset_record = []
         last = 0
@@ -280,6 +283,7 @@ class TrainTool():
             print(f'{i}', end='\t')
             print_list(current)
             loss_record.append((current))
+            if records is not None: records.append(current)
 
             if early_end(loss_record, last):
                 model.expand()
@@ -289,7 +293,7 @@ class TrainTool():
                     model.parameters(), lr=dlr(reset_time))
                 last = i
                 reset_record.append(last)
-
+                if ex_records is not None: ex_records.append(last)
         return loss_record, reset_record
 
 
