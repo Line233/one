@@ -311,7 +311,9 @@ def print_list(lst):
     print('\n')
 
 def now_str():
-    return datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+    import datetime
+    tz=datetime.timezone(datetime.timedelta(hours=8))
+    return datetime.datetime.now(tz=tz).strftime('%Y_%m_%d_%H_%M_%S')
 
 class colab_tool():
 
