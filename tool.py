@@ -31,10 +31,9 @@ class learning_curve():
         if reshape == True:
             records = np.array(records).T
         self.records = records
-        self.max_len = len(records[0])
         self.records_num = len(records)
         if labels is None:
-            labels = range(1, len(self.records)+1)
+            labels = list(range(1, len(self.records)+1))
         self.labels = labels
         self.select = [True for i in range(self.records_num)]
         self.xlabel = xlabel
@@ -42,7 +41,14 @@ class learning_curve():
         self.vlines = []
         self.hlines = []
         self.title = title
-
+    def __getitem__(self,index):
+        return self.records[index],self.labels[index]
+    def add_curve(self,curves):
+        for r,l in curves:
+            self.records_num+=1
+            self.records.append(r)
+            self.labels.append(l)
+            self.select.append(True)
     def __fix_conponents__(self, axe, legend=True, xlabel=None, ylabel=None, title=None):
         if legend == True:
             axe.legend()
@@ -132,7 +138,7 @@ class learning_curve():
 
     def draw_range(self, a=0, b=-1, block_num=1, select=None, expand=0, each=False):
         if b == -1:
-            b = self.max_len
+            b = len(self.records[0])
         if select is None:
             select = self.select
         block = int((b-a)/block_num)
