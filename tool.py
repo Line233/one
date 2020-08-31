@@ -246,10 +246,8 @@ class TrainTool():
         return False
 
     @staticmethod
-    def train_adam_reset(model, train_data, valid_data, records=None, ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
-        loss_record = []
-        reset_record = []
-        last = 0
+    def train_adam_reset(model, train_data, valid_data, records, ex_records, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
+        last =len(records)
         reset_time = 0
         if optim is None:
             optim = torch.optim.Adam(model.parameters(), lr=dlr(reset_time))
@@ -262,27 +260,23 @@ class TrainTool():
                                         batch_size=batch_size))
             print(f'{i}', end='\t')
             print_list(current)
-            loss_record.append((current))
-            if records is not None:
-                records.append(current)
+            records.append(current)
 
-            if early_end(loss_record, last):
+            if early_end(records, last):
                 print('reset_adam')
                 reset_time += 1
                 optim = torch.optim.Adam(
                     model.parameters(), lr=dlr(reset_time))
-                last = i
-                reset_record.append(last)
-                if ex_records is not None:
-                    ex_records.append(last)
-        return loss_record, reset_record
+                last = len(records)
+                ex_records.append(last)
+        return optim
 
     @staticmethod
-    def train_expand(model, train_data, valid_data, records=None, ex_records=None, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
-        loss_record = []
-        reset_record = []
+    def train_expand(model, train_data, valid_data, records, ex_records, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
         last = 0
-        reset_time = 0
+        if len(ex_records)!=0:
+            last=ex_records[-1]
+        reset_time = len(ex_records)
         if optim is None:
             optim = torch.optim.Adam(model.parameters(), lr=dlr(reset_time))
 
@@ -294,22 +288,17 @@ class TrainTool():
                                         batch_size=batch_size))
             print(f'{i}', end='\t')
             print_list(current)
-            loss_record.append((current))
-            if records is not None:
-                records.append(current)
+            records.append(current)
 
-            if early_end(loss_record, last):
+            if early_end(records, last):
                 model.expand()
                 print(model)
                 reset_time += 1
                 optim = torch.optim.Adam(
                     model.parameters(), lr=dlr(reset_time))
-                last = i
-                reset_record.append(last)
-                if ex_records is not None:
-                    ex_records.append(last)
-        return loss_record, reset_record
-
+                last = len(records)
+                ex_records.append(last)
+        return optim
 
 def print_list(lst):
     for i in lst:
