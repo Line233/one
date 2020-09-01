@@ -41,14 +41,17 @@ class learning_curve():
         self.vlines = []
         self.hlines = []
         self.title = title
-    def __getitem__(self,index):
-        return self.records[index],self.labels[index]
-    def add_curve(self,curves):
-        for r,l in curves:
-            self.records_num+=1
+
+    def __getitem__(self, index):
+        return self.records[index], self.labels[index]
+
+    def add_curve(self, curves):
+        for r, l in curves:
+            self.records_num += 1
             self.records.append(r)
             self.labels.append(l)
             self.select.append(True)
+
     def __fix_conponents__(self, axe, legend=True, xlabel=None, ylabel=None, title=None):
         if legend == True:
             axe.legend()
@@ -247,7 +250,7 @@ class TrainTool():
 
     @staticmethod
     def train_adam_reset(model, train_data, valid_data, records, ex_records, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
-        last =len(records)
+        last = len(records)
         reset_time = 0
         if optim is None:
             optim = torch.optim.Adam(model.parameters(), lr=dlr(reset_time))
@@ -274,8 +277,8 @@ class TrainTool():
     @staticmethod
     def train_expand(model, train_data, valid_data, records, ex_records, dlr=dlr, batch_size=10, epoch=10, epoch_per=10, optim=None, early_end=is_early_end):
         last = 0
-        if len(ex_records)!=0:
-            last=ex_records[-1]
+        if len(ex_records) != 0:
+            last = ex_records[-1]
         reset_time = len(ex_records)
         if optim is None:
             optim = torch.optim.Adam(model.parameters(), lr=dlr(reset_time))
@@ -300,15 +303,18 @@ class TrainTool():
                 ex_records.append(last)
         return optim
 
+
 def print_list(lst):
     for i in lst:
         print(f"{i:.8f}", end='\t')
-    print('\n')   
+    print('\n')
+
 
 def now_str():
     import datetime
-    tz=datetime.timezone(datetime.timedelta(hours=8))
+    tz = datetime.timezone(datetime.timedelta(hours=8))
     return datetime.datetime.now(tz=tz).strftime('%Y_%m_%d_%H_%M_%S')
+
 
 class colab_tool():
 
@@ -322,11 +328,11 @@ class colab_tool():
     def download_drive(names):
         drive_path = 'drive/My Drive/'
         for n in names:
-            tmp=drive_path+now_str()+'_'+n
-            shutil.copy(n,tmp)
+            tmp = drive_path+now_str()+'_'+n
+            shutil.copy(n, tmp)
 
     @staticmethod
-    def zip(zip_name,content):
+    def zip(zip_name, content):
         import shutil
         # Create 'path\to\zip_file.zip'
         shutil.make_archive(zip_name, 'zip', content)
